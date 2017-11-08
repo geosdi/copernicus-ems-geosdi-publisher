@@ -21,4 +21,4 @@ geoserver.rest.workspace=geosdi
 
 mvn clean install
 
-mvn springboot:run
+mvn spring-boot:run
