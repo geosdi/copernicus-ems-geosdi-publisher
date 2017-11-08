@@ -155,7 +155,7 @@ public class EMSPublisherService {
                 publisher.createWorkspace(getGeoserverRestWorkspace());
             }
 
-            boolean b = publisher.publishShpCollection("topp", "EMS", savedFile.toURI());
+            boolean b = publisher.publishShpCollection(geoserverRestWorkspace, "EMS", savedFile.toURI());
 
             log.info("Published = " + b);
         } catch (ClientProtocolException e) {
