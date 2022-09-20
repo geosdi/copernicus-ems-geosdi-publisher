@@ -37,7 +37,6 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.cookie.BasicClientCookie;
 import org.apache.http.message.BasicNameValuePair;
-import org.geosdi.geoplatform.connector.geoserver.model.configure.GPGeoserverParameterConfigure;
 import org.geosdi.geoplatform.connector.geoserver.model.file.GPGeoserverDataStoreFileExtension;
 import org.geosdi.geoplatform.connector.geoserver.model.upload.GPGeoserverUploadMethod;
 import org.geosdi.geoplatform.connector.geoserver.model.workspace.GeoserverCreateWorkspaceBody;
@@ -163,10 +162,9 @@ public class EMSPublisherService {
             }
             log.info("#######FILE NAME: {}", savedFile.getName());
 
-            boolean b = this.geoserverConnectorStore.updateDataStoreWithStoreName()
-                    .withWorkspace(geoserverRestWorkspace).withStore("EMS").withMethod(GPGeoserverUploadMethod.FILE)
-                    .withFormat(GPGeoserverDataStoreFileExtension.SHP).withFile(savedFile)
-                    .withConfigure(GPGeoserverParameterConfigure.ALL).getResponse();
+            boolean b = this.geoserverConnectorStore.dataStoreUploadFiles().withWorkspace(geoserverRestWorkspace)
+                    .withStore("EMS").withMethod(GPGeoserverUploadMethod.FILE)
+                    .withFormat(GPGeoserverDataStoreFileExtension.SHP).withFile(savedFile).getResponse();
 
             log.info("Published = " + b);
         } catch (ClientProtocolException e) {
