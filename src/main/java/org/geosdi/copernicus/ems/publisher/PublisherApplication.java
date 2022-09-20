@@ -23,8 +23,6 @@
  */
 package org.geosdi.copernicus.ems.publisher;
 
-import it.geosolutions.geoserver.rest.GeoServerRESTPublisher;
-import it.geosolutions.geoserver.rest.GeoServerRESTReader;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -44,7 +42,7 @@ import java.net.MalformedURLException;
  * @email francesco.izzi@geosdi.org
  */
 
-@SpringBootApplication
+@SpringBootApplication(scanBasePackages = "org.geosdi.copernicus.ems.*")
 public class PublisherApplication implements CommandLineRunner{
 
     private static final Logger log = LoggerFactory.getLogger(PublisherApplication.class);
@@ -58,8 +56,6 @@ public class PublisherApplication implements CommandLineRunner{
      */
     @Override
     public void run(String... args) throws MalformedURLException {
-        GeoServerRESTReader reader = new GeoServerRESTReader(emsService.getGeoserverRestURL(), emsService.getGeoserverRestUser(), emsService.getGeoserverRestPassword());
-        GeoServerRESTPublisher publisher = new GeoServerRESTPublisher(emsService.getGeoserverRestURL(), emsService.getGeoserverRestUser(), emsService.getGeoserverRestPassword());
         log.info("MissionID: " +emsService.getMissionID());
         String url = "https://emergency.copernicus.eu/mapping/list-of-components/"+emsService.getMissionID();
         log.info("Fetching... " + url);
@@ -71,7 +67,7 @@ public class PublisherApplication implements CommandLineRunner{
             log.info("\nInpsect for ZIP file : ");
             for (Element link : links) {
                 if (trim(link.text(), 35).equals("ZIP")) {
-                    emsService.downloadAndPublishToGeoServer(link.attr("abs:href"), reader, publisher);
+                    emsService.downloadAndPublishToGeoServer(link.attr("abs:href"));
                 }
             }
         } catch (IOException e) {

@@ -23,8 +23,6 @@
  */
 package org.geosdi.copernicus.ems.publisher;
 
-import it.geosolutions.geoserver.rest.GeoServerRESTPublisher;
-import it.geosolutions.geoserver.rest.GeoServerRESTReader;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
@@ -39,18 +37,26 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.cookie.BasicClientCookie;
 import org.apache.http.message.BasicNameValuePair;
+import org.geosdi.geoplatform.connector.geoserver.model.configure.GPGeoserverParameterConfigure;
+import org.geosdi.geoplatform.connector.geoserver.model.file.GPGeoserverDataStoreFileExtension;
+import org.geosdi.geoplatform.connector.geoserver.model.upload.GPGeoserverUploadMethod;
+import org.geosdi.geoplatform.connector.geoserver.model.workspace.GeoserverCreateWorkspaceBody;
+import org.geosdi.geoplatform.connector.store.GPGeoserverConnectorStore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Component;
 
+import javax.annotation.Resource;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
+
+import static java.lang.Boolean.TRUE;
 
 /**
  * @author Francesco Izzi - CNR IMAA geoSDI Group
@@ -82,13 +88,16 @@ public class EMSPublisherService {
     @Value("${geoserver.rest.workspace}")
     private String geoserverRestWorkspace;
 
+    @Resource(name = "geoserverConnectorStore")
+    private GPGeoserverConnectorStore geoserverConnectorStore;
 
-    public void downloadAndPublishToGeoServer(String file, GeoServerRESTReader reader, GeoServerRESTPublisher publisher) {
+    public void downloadAndPublishToGeoServer(String file) {
 
         try {
             RequestConfig globalConfig = RequestConfig.custom().setCookieSpec(CookieSpecs.DEFAULT).build();
             BasicCookieStore cookieStore = new BasicCookieStore();
-            BasicClientCookie cookie = new BasicClientCookie("SESSab217149b7c08d4c413622955e35ec61", "76rtt4WAe6Gw3VLBZtnK3eUuOh4ryRKK6fA7_Rlw-YA");
+            BasicClientCookie cookie = new BasicClientCookie("SESSab217149b7c08d4c413622955e35ec61",
+                    "76rtt4WAe6Gw3VLBZtnK3eUuOh4ryRKK6fA7_Rlw-YA");
             cookie.setDomain(".copernicus.eu");
             cookie.setPath("/");
             cookieStore.addCookie(cookie);
@@ -147,11 +156,17 @@ public class EMSPublisherService {
 
             log.info("Start Publishing EMS shp collection to geoserver ...");
 
-            if(!reader.existsWorkspace(getGeoserverRestWorkspace())){
-                publisher.createWorkspace(getGeoserverRestWorkspace());
+            if (!this.geoserverConnectorStore.loadWorkspaceRequest().withWorkspaceName(getGeoserverRestWorkspace())
+                    .withQuietOnNotFound(TRUE).exist()) {
+                this.geoserverConnectorStore.createWorkspaceRequest()
+                        .withWorkspaceBody(new GeoserverCreateWorkspaceBody(getGeoserverRestWorkspace())).getResponse();
             }
+            log.info("#######FILE NAME: {}", savedFile.getName());
 
-            boolean b = publisher.publishShpCollection(geoserverRestWorkspace, "EMS", savedFile.toURI());
+            boolean b = this.geoserverConnectorStore.updateDataStoreWithStoreName()
+                    .withWorkspace(geoserverRestWorkspace).withStore("EMS").withMethod(GPGeoserverUploadMethod.FILE)
+                    .withFormat(GPGeoserverDataStoreFileExtension.SHP).withFile(savedFile)
+                    .withConfigure(GPGeoserverParameterConfigure.ALL).getResponse();
 
             log.info("Published = " + b);
         } catch (ClientProtocolException e) {
@@ -159,6 +174,8 @@ public class EMSPublisherService {
         } catch (UnsupportedOperationException e) {
             e.printStackTrace();
         } catch (IOException e) {
+            e.printStackTrace();
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
