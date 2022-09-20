@@ -1,9 +1,10 @@
 # copernicus-ems-geosdi-publisher
+
+This version support new geoserver api restful interfaces.
+
 SpringBoot Application for publishing Copernicus EMS Vector open data to GeoServer
 
 Setting application.properties
-
-
 
 ```properties
 app.name=copernicus-ems-geosdi-publisher
