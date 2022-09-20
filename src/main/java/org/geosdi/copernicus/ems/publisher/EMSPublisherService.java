@@ -49,7 +49,6 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.MalformedURLException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -117,12 +116,9 @@ public class EMSPublisherService {
             nameValuePairs.add(new BasicNameValuePair("form_id", "emsmapping_disclaimer_download_form"));
             request.setEntity(new UrlEncodedFormEntity(nameValuePairs));
 
-
-
             HttpResponse response = client.execute(request);
             HttpEntity entity = response.getEntity();
             String fileName = file.substring(file.lastIndexOf("/")+1,file.lastIndexOf(".zip")+4);
-
 
             int responseCode = response.getStatusLine().getStatusCode();
 
